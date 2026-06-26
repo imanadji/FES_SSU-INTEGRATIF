@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factor Evaluation System (FES) & Struktur Skala Upah - Integrated Model - Iman N Bajuasijadji</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
+    <!-- jsPDF & AutoTable -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS (Excel) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        }
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #printArea {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+                box-shadow: none !important;
+            }
+            .print-page {
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 1.5cm 2cm !important;
+                width: 100% !important;
+                min-height: auto !important;
+                height: auto !important;
+                page-break-after: always;
+                break-after: page;
+                background: #ffffff !important;
+            }
+            .print-page:last-child {
+                page-break-after: avoid;
+                break-after: avoid;
+            }
+            table.print-table {
+                border: 1px solid #000000 !important;
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            table.print-table th, table.print-table td {
+                border: 1px solid #000000 !important;
+                color: #000000 !important;
+                padding: 6px 10px !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- PASSWORD PROTECTION SCREEN OVERLAY -->
+    <div id="login-overlay" class="fixed inset-0 bg-slate-950 z-[9999] flex items-center justify-center p-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-8 shadow-2xl text-center space-y-6">
+            <div class="flex justify-center">
+                <div class="p-3 bg-indigo-600/10 rounded-full text-indigo-400 border border-indigo-500/20">
+                    <i data-lucide="lock" class="w-10 h-10"></i>
+                </div>
+            </div>
+            <div class="space-y-2">
+                <h2 class="text-2xl font-bold text-white tracking-tight">Akses Terbatas</h2>
+                <p class="text-xs text-slate-400">Silakan masukkan kata sandi Anda untuk membuka dasbor FES & SSU.</p>
+            </div>
+            <div class="space-y-4 text-left">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Password Akses</label>
+                    <input type="password" id="app-password-input" placeholder="" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-white placeholder-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner text-center font-mono tracking-widest text-sm">
+                    <p id="password-error-message" class="text-xs text-rose-500 font-semibold mt-2.5 hidden text-center">Password tidak valid. Silakan coba lagi.</p>
+                </div>
+                <button onclick="checkAppPassword()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-indigo-950/50 transition flex items-center justify-center gap-2">
+                    <i data-lucide="key-round" class="w-4 h-4"></i>
+                    Buka Akses Dasbor
+                </button>
+            </div>
+            <div class="pt-4 border-t border-slate-800/60 text-[10px] text-slate-500 font-semibold uppercase tracking-widest">
+                FES & SSU Integrated Dashboard
+            </div>
+        </div>
+    </div>
+
+    <!-- Header / Navbar Statis -->
+    <header class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md border-b border-indigo-900 sticky top-0 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-indigo-600 rounded-lg shadow-inner">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight">Factor Evaluation System (FES) & Struktur Skala Upah - Integrated Model </h1>
+                    <p class="text-[10px] text-indigo-300 font-medium">Evaluasi Jabatan FES & Penyusunan Struktur Skala Upah • Permenaker RI No. 1/2017</p>
+                </div>
+            </div>
+            <div class="text-right flex items-center gap-3">
+                <span class="inline-block bg-indigo-900/60 border border-indigo-700/50 rounded-full px-3 py-1 text-[11px] font-semibold text-indigo-200">
+                    Pengembang: <span class="text-white font-bold">Iman N Bajuasijadji</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 no-print">
+        
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-200 mb-6 overflow-x-auto bg-white rounded-t-xl shadow-sm p-1.5 gap-2">
+            <button onclick="switchTab('tab-profile')" id="btn-tab-profile" class="tab-btn flex items-center gap-2 py-3 px-5 text-sm font-bold rounded-lg text-indigo-600 bg-indigo-50 transition-all shrink-0">
+                <i data-lucide="building-2" class="w-4 h-4"></i>
+                Profil & Setup
+            </button>
+            <button onclick="switchTab('tab-reference')" id="btn-tab-reference" class="tab-btn flex items-center gap-2 py-3 px-5 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition-all shrink-0">
+                <i data-lucide="book-open" class="w-4 h-4"></i>
+                Kamus FES
+            </button>
+            <button onclick="switchTab('tab-calc')" id="btn-tab-calc" class="tab-btn flex items-center gap-2 py-3 px-5 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition-all shrink-0">
+                <i data-lucide="calculator" class="w-4 h-4"></i>
+                Kalkulator FES
+            </button>
+            <button onclick="switchTab('tab-reports')" id="btn-tab-reports" class="tab-btn flex items-center gap-2 py-3 px-5 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition-all shrink-0">
+                <i data-lucide="database" class="w-4 h-4"></i>
+                Database FES
+            </button>
+            <button onclick="switchTab('tab-ssu')" id="btn-tab-ssu" class="tab-btn flex items-center gap-2 py-3 px-5 text-sm font-semibold rounded-lg text-slate-600 hover:bg-slate-100 transition-all shrink-0 border border-transparent hover:border-indigo-200">
+                <i data-lucide="scale" class="w-4 h-4 text-indigo-600"></i>
+                Penyusunan SSU
+            </button>
+        </div>
+
+        <!-- ================= TAB: PROFILE ================= -->
+        <div id="tab-profile" class="tab-content block">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <div class="max-w-2xl">
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">Profil Perusahaan & Tim Evaluator</h2>
+                    <p class="text-slate-500 text-sm mb-6">Lengkapi data dasar organisasi dan pemeriksa untuk memvalidasi seluruh berkas kerja SSU dan Evaluasi Jabatan (FES).</p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Perusahaan / Organisasi</label>
+                            <input type="text" id="companyName" placeholder="Contoh: PT Sumber Makmur Sentosa" class="w-full border border-slate-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
+                        </div>
+                        
+                        <!-- Multi-Evaluator Form -->
+                        <div class="bg-slate-50 p-5 rounded-lg border border-slate-200 space-y-3">
+                            <label class="block text-sm font-bold text-slate-800">Daftar Tim Evaluator (Maksimal 5 Nama)</label>
+                            <p class="text-xs text-slate-500">Nama-nama ini akan otomatis tersemat di lembar laporan, ekspor dokumen PDF, maupun berkas Excel.</p>
+                            
+                            <div id="evaluator-inputs-container" class="space-y-2">
+                                <!-- Dynamic evaluator fields injected by JS -->
+                            </div>
+                            
+                            <button type="button" id="btn-add-evaluator" onclick="addEvaluatorInput()" class="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 transition mt-1">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                Tambah Evaluator Baru
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-4 bg-indigo-50 rounded-lg border border-indigo-100 flex items-start gap-3">
+                        <i data-lucide="info" class="w-5 h-5 text-indigo-600 mt-0.5 flex-shrink-0"></i>
+                        <div class="text-xs text-indigo-800 space-y-1">
+                            <p class="font-semibold">Sistem Evaluasi Jabatan Terpadu FES & SSU:</p>
+                            <p>1. Tentukan Nama Perusahaan dan tim penguji pada menu profil ini.</p>
+                            <p>2. Lakukan pengujian posisi di menu <strong>Kalkulator FES</strong> berdasarkan parameter Permenaker.</p>
+                            <p>3. Bobot poin terendah dan tertinggi dari riwayat pengujian FES dapat disinkronkan langsung di menu <strong>Penyusunan SSU</strong> untuk merumuskan skala upah yang adil.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB: REFERENCE MATRIX ================= -->
+        <div id="tab-reference" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Matriks Klasifikasi & Kamus FES (Permenaker RI No. 1/2017)</h2>
+                <p class="text-slate-500 text-sm mb-6">Tinjau pemborangan poin kualitatif, sub-faktor dasar, serta rentang bobot nilai yang digunakan pada sistem ini.</p>
+
+                <div class="space-y-6" id="matrix-factors-accordion">
+                    <!-- Dynamic Matrix Accordion populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB: CALCULATOR ================= -->
+        <div id="tab-calc" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left Column: Input Form -->
+                <div class="lg:col-span-7 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">Kalkulator Evaluasi FES</h2>
+                    <p class="text-slate-500 text-sm mb-6">Evaluasi bobot jabatan satu per satu dengan menentukan tingkat level parameter di bawah ini.</p>
+                    
+                    <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Nama Jabatan yang Dievaluasi</label>
+                        <input type="text" id="jobName" placeholder="Contoh: Supervisor Finansial & Akuntansi" class="w-full border border-slate-300 rounded-lg p-2.5 bg-white font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-inner">
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="mb-6">
+                        <div class="flex justify-between text-xs font-bold text-slate-500 mb-1.5">
+                            <span>PROGRESS EVALUASI</span>
+                            <span id="progress-percent">0/8 FAKTOR</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                            <div id="progress-bar" class="bg-indigo-600 h-full w-0 transition-all duration-300"></div>
+                        </div>
+                    </div>
+
+                    <div id="calc-factors" class="space-y-6">
+                        <!-- Dynamic Factors Selection list in JS -->
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+                        <button onclick="saveCurrentJobEvaluation()" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition flex items-center justify-center gap-2">
+                            <i data-lucide="save" class="w-5 h-5"></i>
+                            Simpan Hasil Evaluasi Jabatan
+                        </button>
+                        <button onclick="clearCalculatorForm()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg shadow-sm transition flex items-center justify-center gap-2" title="Reset Form Evaluasi Saat Ini">
+                            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                            Reset
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Live Result Indicator -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-gradient-to-br from-indigo-950 to-slate-900 text-white rounded-xl shadow-lg p-6 sticky top-24 border border-indigo-950">
+                        <h3 class="text-sm font-bold uppercase tracking-widest text-indigo-300 mb-1">Akumulasi Hasil</h3>
+                        <p class="text-xs text-slate-400 mb-4">Total poin yang terakumulasi secara real-time (Maksimum 1000 Poin)</p>
+                        
+                        <div class="flex items-baseline mb-4">
+                            <span id="live-total-points" class="text-5xl font-extrabold text-white tracking-tight">0</span>
+                            <span class="text-indigo-300 ml-2 font-semibold">/ 1000 poin</span>
+                        </div>
+
+                        <div id="live-badge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-900 text-indigo-100 border border-indigo-700 mb-6">
+                            Poin Belum Mencukupi
+                        </div>
+
+                        <div class="border-t border-indigo-800/60 pt-4 space-y-3 text-xs text-slate-300">
+                            <div class="flex justify-between">
+                                <span>Jabatan:</span>
+                                <span id="preview-job-name" class="font-semibold text-white">Belum ditentukan</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Perusahaan:</span>
+                                <span id="preview-company-name" class="font-semibold text-white">Belum ditentukan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-[380px]">
+                        <h3 class="text-sm font-bold uppercase text-slate-500 tracking-wider mb-2 flex items-center gap-1.5">
+                            <i data-lucide="help-circle" class="w-4 h-4 text-amber-500"></i>
+                            Penjelasan Kriteria Level Aktif
+                        </h3>
+                        <div id="live-narrative-explanation" class="text-slate-600 text-sm leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-lg border border-slate-100 italic min-h-[120px]">
+                            Silakan pilih opsi level pada faktor untuk melihat deskripsi naratif di sini.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= TAB: DATABASE REPORTS ================= -->
+        <div id="tab-reports" class="tab-content hidden space-y-8">
+            <!-- Database Grid -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900">Database Hasil Evaluasi</h2>
+                        <p class="text-slate-500 text-sm">Berikut adalah seluruh hasil analisis pekerjaan yang telah dievaluasi menggunakan metode FES.</p>
+                    </div>
+                    <button onclick="confirmClearAll()" class="px-4 py-2 bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        Hapus Semua Data
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto rounded-lg border border-slate-200">
+                    <table class="w-full text-left border-collapse" id="databaseTable">
+                        <thead>
+                            <tr class="bg-slate-100 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200">
+                                <th class="p-4">No.</th>
+                                <th class="p-4">Perusahaan</th>
+                                <th class="p-4">Nama Jabatan</th>
+                                <th class="p-4">Rincian Nilai Poin per Subfaktor (F1 s/d F8)</th>
+                                <th class="p-4 text-center">Total Poin</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="databaseBody" class="text-sm divide-y divide-slate-200">
+                            <!-- Populated dynamically by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pre-export Interactive Mockup Report -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Review Laporan Kerja Terkumpul</h2>
+                <p class="text-slate-500 text-sm mb-6">Pratinjau tampilan dokumen laporan resmi sebelum disimpan atau diunduh.</p>
+
+                <!-- Mockup Report Box simulating real outputs -->
+                <div class="border-2 border-slate-200 rounded-xl p-6 md:p-10 bg-white max-w-4xl mx-auto shadow-inner" id="previewReportBox">
+                    <div class="border-b-4 border-slate-900 pb-5 mb-6">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 id="report-company-header" class="text-2xl font-black uppercase text-slate-900">PT CONTOH PERUSAHAAN INDONESIA</h3>
+                                <p class="text-sm text-slate-500 font-medium">Sistem Evaluasi Jabatan Terpadu - Format Poin Faktor Permenaker RI No. 1/2017</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="bg-slate-100 px-3 py-1 rounded border text-xs font-bold text-slate-700">DOKUMEN INTERN</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mb-8 text-xs text-slate-700">
+                        <div>
+                            <span class="block text-slate-400 uppercase font-bold tracking-wider">Disusun Oleh (Tim Evaluator):</span>
+                            <span id="report-evaluators" class="text-sm font-bold text-slate-900">Iman N Bajuasijadji</span>
+                        </div>
+                        <div>
+                            <span class="block text-slate-400 uppercase font-bold tracking-wider">Tanggal Cetak:</span>
+                            <span id="report-date" class="text-sm font-bold text-slate-900">Selasa, 9 Juni 2026</span>
+                        </div>
+                    </div>
+
+                    <h4 class="text-sm font-extrabold text-slate-900 mb-3 border-b pb-1">Tabel Klasifikasi & Distribusi Poin Seluruh Jabatan (Maksimal 1000 Poin)</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left border-collapse border border-slate-300">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-700 font-bold border-b border-slate-300 text-center">
+                                    <th class="p-2 border border-slate-300 text-left">Jabatan</th>
+                                    <th class="p-2 border border-slate-300">Pengetahuan (F1)</th>
+                                    <th class="p-2 border border-slate-300">Pengalaman (F2)</th>
+                                    <th class="p-2 border border-slate-300">Fisik (F3)</th>
+                                    <th class="p-2 border border-slate-300">Mental (F4)</th>
+                                    <th class="p-2 border border-slate-300">Peraturan (F5)</th>
+                                    <th class="p-2 border border-slate-300">Keuangan (F6)</th>
+                                    <th class="p-2 border border-slate-300">Kondisi Kerja (F7)</th>
+                                    <th class="p-2 border border-slate-300">Bahaya (F8)</th>
+                                    <th class="p-2 border border-slate-300 font-extrabold">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mockupTableBody">
+                                <!-- Populated dynamically by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-[10px] text-slate-400 font-semibold uppercase tracking-widest">
+                        <span>Laporan Evaluasi Jabatan Permenaker</span>
+                        <span id="mockup-verifier-signature">Diverifikasi oleh: Iman N Bajuasijadji</span>
+                    </div>
+                </div>
+
+                <!-- Export Actions -->
+                <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                    <button onclick="downloadPDF()" class="flex items-center justify-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg shadow-sm transition-all">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                        Ekspor & Download PDF
+                    </button>
+                    <button onclick="downloadExcel()" class="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition-all">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                        Ekspor & Download Excel (.xlsx)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB: STRUCTUR & SKALA UPAH (SSU) ================= -->
+        <div id="tab-ssu" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left Panel: SSU Inputs -->
+                <section class="lg:col-span-5 space-y-6">
+
+                    <!-- Model SSU Selector -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                            <i data-lucide="settings-2" class="text-indigo-600 w-5 h-5"></i>
+                            <h2 class="font-bold text-slate-900">Metode & Model SSU</h2>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Pilih Model Penyusunan</label>
+                            <select id="methodSelector" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm font-semibold bg-white">
+                                <option value="pilihan1" selected>Pilihan 1: Upah Pokok & Tunjangan (Dua Titik Standar)</option>
+                                <option value="pilihan2">Pilihan 2: Clean Wages / Upah Utuh (Formula Lampiran)</option>
+                            </select>
+                            <p id="methodHelpText" class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">Menggunakan metode dua titik standar dengan nilai upah tengah terendah dan tertinggi ditentukan langsung hulu-hilir.</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Poin Parameter & SSU Integration -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="grid" class="text-indigo-600 w-5 h-5"></i>
+                                <h2 class="font-bold text-slate-900">Batasan Golongan & Poin</h2>
+                            </div>
+                            <!-- Live Integration Sync Button -->
+                            <button onclick="syncPointsFromFES()" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg border border-indigo-200 flex items-center gap-1 transition-all">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                Sinkron FES
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Poin Terkecil</label>
+                                    <input type="number" id="poinTerkecil" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm" value="150">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Poin Terbesar</label>
+                                    <input type="number" id="poinTerbesar" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm" value="870">
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1 italic">*Dapat disinkronisasikan langsung dari analisis database FES di atas.</p>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Jumlah Golongan Jabatan</label>
+                                <input type="number" id="jumlahGolongan" min="2" max="20" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-sm" value="8">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parameter Pengupahan (Dynamic Labels via JS) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                            <i data-lucide="coins" class="text-indigo-600 w-5 h-5"></i>
+                            <h2 class="font-bold text-slate-900">Kebijakan Nominal Pengupahan</h2>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label id="labelUpahMin" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Upah Tengah Terendah (Gol. I)</label>
+                                <div class="relative rounded-lg shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-slate-500 text-sm">Rp</span>
+                                    </div>
+                                    <input type="number" id="upahMin" class="w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold" value="2050000">
+                                </div>
+                                <p id="descUpahMin" class="text-[11px] text-slate-500 mt-1">Biasanya berbasis pada ketentuan UMK/UMP daerah yang berlaku harian.</p>
+                            </div>
+
+                            <div>
+                                <label id="labelUpahMax" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Upah Tengah Tertinggi (Gol. Akhir)</label>
+                                <div class="relative rounded-lg shadow-sm">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-slate-500 text-sm">Rp</span>
+                                    </div>
+                                    <input type="number" id="upahMax" class="w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-semibold" value="20000000">
+                                </div>
+                                <p id="descUpahMax" class="text-[11px] text-slate-500 mt-1">Kebijakan upah pokok tertinggi untuk posisi strategis korporasi.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Klasifikasi & Konfigurasi Rentang (Spread) -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="sliders" class="text-indigo-600 w-5 h-5"></i>
+                                <h2 class="font-bold text-slate-900">Konfigurasi Rentang (Spread)</h2>
+                            </div>
+                            <span class="text-xs text-indigo-600 font-semibold cursor-pointer hover:underline" onclick="resetSpreadDefaults()">Gunakan Default</span>
+                        </div>
+                        <div class="space-y-4 max-h-64 overflow-y-auto pr-2" id="spreadContainer">
+                            <!-- Dynamic spreads generated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Scenario Saving -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-sm text-slate-900">Simpan Skenario SSU</h3>
+                        <div class="flex space-x-2">
+                            <input type="text" id="scenarioName" class="flex-grow px-3 py-2 border border-slate-200 rounded-lg text-xs" placeholder="Nama Skenario (Misal: SSU 2026)">
+                            <button onclick="saveCurrentScenario()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center space-x-1 transition-all">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                <span>Simpan</span>
+                            </button>
+                        </div>
+                        <div id="savedScenariosList" class="space-y-2 max-h-36 overflow-y-auto">
+                            <!-- List skenario dari localstorage -->
+                        </div>
+                    </div>
+
+                </section>
+
+                <!-- Right Panel: SSU Outputs -->
+                <section class="lg:col-span-7 space-y-6">
+                    <div class="flex flex-wrap justify-between items-center gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex items-center space-x-2">
+                            <button onclick="calculateAndRender()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-1.5 transition-all shadow-sm">
+                                <i data-lucide="play" class="w-4 h-4"></i>
+                                <span>Kalkulasi Struktur</span>
+                            </button>
+                            <button onclick="clearAllInputs()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-1.5 transition-all">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                                <span>Clear</span>
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="showPdfPreviewModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center space-x-1.5 transition-all shadow-sm">
+                                <i data-lucide="file-check" class="w-4 h-4"></i>
+                                <span>Pratinjau PDF / SK</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SSU Chart -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h2 class="font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                            <i data-lucide="line-chart" class="text-indigo-600 w-5 h-5"></i>
+                            Visualisasi Garis Kebijakan Upah
+                        </h2>
+                        <div class="relative h-72">
+                            <canvas id="wageChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- SSU Table -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-slate-100">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <i data-lucide="table" class="text-indigo-600 w-5 h-5"></i>
+                                    <h2 class="font-bold text-slate-900">Tabel Struktur dan Skala Upah</h2>
+                                </div>
+                                <button onclick="exportToCSV()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1">
+                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                    <span>Ekspor CSV</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200 text-sm">
+                                <thead class="bg-slate-50">
+                                    <tr>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Gol. Jabatan</th>
+                                        <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Rentang Nilai (Poin)</th>
+                                        <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">Spread (%)</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Upah Terkecil (Min)</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Upah Tengah (Mid)</th>
+                                        <th scope="col" class="px-4 py-3 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Upah Terbesar (Max)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wageTableBody" class="divide-y divide-slate-100 bg-white">
+                                    <!-- Populated by calculation -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- PDF & PRINT PREVIEW MODAL -->
+    <div id="pdfModal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in duration-200 border border-slate-700">
+            <!-- Modal Header -->
+            <div class="bg-slate-950 text-white p-4 flex justify-between items-center border-b border-slate-800">
+                <div class="flex items-center space-x-3">
+                    <div class="p-1.5 bg-emerald-500/20 rounded text-emerald-400">
+                        <i data-lucide="file-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm tracking-wide">Dokumen Resmi Struktur & Skala Upah</h3>
+                        <p class="text-[11px] text-slate-400">Pratinjau Cetak Formal (A4 Standard)</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center space-x-2 transition-all shadow-lg shadow-emerald-950/50">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>Cetak / Ekspor PDF</span>
+                    </button>
+                    <button onclick="closePdfPreviewModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-900 transition-all">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Double-Page dynamic stacked print container -->
+            <div class="flex-grow p-8 overflow-y-auto bg-slate-900/60 flex flex-col items-center space-y-8 select-none">
+                <div id="printArea" class="space-y-8 w-full max-w-[21cm]">
+                    
+                    <!-- PAGE 1: SURAT KEPUTUSAN DIREKSI -->
+                    <div class="print-page bg-white p-[2.5cm] shadow-2xl text-black text-[12px] leading-relaxed font-serif min-h-[29.7cm] flex flex-col justify-between">
+                        <div>
+                            <!-- Letterhead / Kop Surat Resmi -->
+                            <div class="text-center border-b-4 border-double border-black pb-4 mb-6">
+                                <h2 id="pdfHeaderCompany" class="text-xl font-bold uppercase font-sans tracking-wider text-slate-900">PT. SUKSES BERSAMA INDONESIA</h2>
+                                <p class="text-[10px] font-sans tracking-wide text-gray-600 mt-1">Gedung Executive Center, Lantai 12, Jl. Jenderal Sudirman, Surabaya, Jawa Timur</p>
+                                <p class="text-[9px] font-sans text-gray-500">Telp: (031) 555-0192 | Email: info@suksesbersama.co.id</p>
+                            </div>
+
+                            <!-- Judul SK -->
+                            <div class="text-center space-y-1 mb-8">
+                                <h3 class="text-sm font-bold uppercase tracking-wide decoration-solid underline">KEPUTUSAN DIREKSI</h3>
+                                <p class="font-sans font-bold text-[10px] text-gray-700">NOMOR: KEP.042/HRD-SSU/VI/2026</p>
+                                <p class="text-[10px] font-sans font-semibold text-gray-500">TENTANG</p>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-900">PENETAPAN STRUKTUR DAN SKALA UPAH PERUSAHAAN</h4>
+                            </div>
+
+                            <!-- ISI SK -->
+                            <div class="space-y-4 text-justify">
+                                <div class="grid grid-cols-12 gap-2">
+                                    <div class="col-span-3 font-bold">Menimbang</div>
+                                    <div class="col-span-1 text-center">:</div>
+                                    <div class="col-span-8 space-y-2">
+                                        <div class="flex items-start"><span class="mr-2">a.</span><span>Bahwa untuk melaksanakan ketentuan Pasal 92 ayat (3) Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan serta Peraturan Menteri Ketenagakerjaan Nomor 1 Tahun 2017;</span></div>
+                                        <div class="flex items-start"><span class="mr-2">b.</span><span>Bahwa demi mewujudkan iklim kerja yang kondusif, produktif, adil, dan berdaya saing tinggi, perlu dibentuk sistem pengupahan berdasar bobot jabatan.</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-12 gap-2 mt-4">
+                                    <div class="col-span-3 font-bold">Mengingat</div>
+                                    <div class="col-span-1 text-center">:</div>
+                                    <div class="col-span-8 space-y-2">
+                                        <div class="flex items-start"><span class="mr-2">1.</span><span>Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan;</span></div>
+                                        <div class="flex items-start"><span class="mr-2">2.</span><span>Peraturan Pemerintah Nomor 36 Tahun 2021 tentang Pengupahan;</span></div>
+                                        <div class="flex items-start"><span class="mr-2">3.</span><span>Peraturan Menteri Ketenagakerjaan Nomor 1 Tahun 2017 tentang Struktur dan Skala Upah.</span></div>
+                                    </div>
+                                </div>
+
+                                <p class="font-bold text-center uppercase tracking-widest text-xs my-6">MEMUTUSKAN</p>
+
+                                <div class="grid grid-cols-12 gap-2">
+                                    <div class="col-span-3 font-bold">Menetapkan</div>
+                                    <div class="col-span-1 text-center">:</div>
+                                    <div class="col-span-8 space-y-2">
+                                        <div class="flex items-start"><span class="mr-3 font-semibold">PERTAMA:</span><span>Memberlakukan Struktur dan Skala Upah Perusahaan periode tahun berjalan sebagaimana terlampir dalam keputusan ini.</span></div>
+                                        <div class="flex items-start"><span class="mr-3 font-semibold">KEDUA:</span><span>Struktur dan Skala Upah tersebut menjadi pedoman dalam penetapan upah pokok bagi pekerja yang mempunyai hubungan kerja formal.</span></div>
+                                        <div class="flex items-start"><span class="mr-3 font-semibold">KETIGA:</span><span>Keputusan ini mulai berlaku sejak tanggal ditetapkan, dengan ketentuan apabila terdapat kekeliruan akan diperbaiki sebagaimana mestinya.</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer Signee Halaman 1 -->
+                        <div class="mt-12 flex justify-between items-end border-t border-gray-150 pt-6">
+                            <div>
+                                <p class="text-[9px] text-gray-400">Dokumen Internal Perusahaan</p>
+                            </div>
+                            <div class="text-right w-64">
+                                <p>Ditetapkan di: Jakarta</p>
+                                <p>Pada tanggal: 9 Juni 2026</p>
+                                <p class="font-bold mt-2">Direktur Utama,</p>
+                                <div class="h-16"></div>
+                                <p class="underline font-bold" id="pdfSigneeCompany">( _______________________ )</p>
+                                <p class="text-[10px] text-gray-500" id="pdfSigneeSub">Direktur Utama</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 2: LAMPIRAN STRUKTUR DAN SKALA UPAH -->
+                    <div class="print-page bg-white p-[2.5cm] shadow-2xl text-black text-[12px] leading-relaxed font-serif min-h-[29.7cm] flex flex-col justify-between">
+                        <div>
+                            <!-- Header Lampiran -->
+                            <div class="flex justify-between items-start border-b border-black pb-3 mb-6">
+                                <div>
+                                    <span class="font-sans font-bold text-[10px] uppercase tracking-wider text-gray-500">Lampiran SK Direksi</span>
+                                    <p class="text-[9px] font-sans text-gray-400">Nomor: KEP.042/HRD-SSU/VI/2026</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-sans font-bold text-[10px] text-slate-900" id="pdfHeaderCompany2">PT. SUKSES BERSAMA INDONESIA</p>
+                                </div>
+                            </div>
+
+                            <div class="text-center my-4">
+                                <h3 class="font-bold text-xs uppercase tracking-wider">TABEL RESMI STRUKTUR DAN SKALA UPAH</h3>
+                                <p id="pdfMethodText" class="text-[10px] font-sans text-gray-500 mt-1">Metode: Dua Titik Standar</p>
+                            </div>
+
+                            <!-- Grayscale Print-optimized Table -->
+                            <table class="print-table w-full border border-black border-collapse text-[10px] text-left">
+                                <thead>
+                                    <tr class="bg-gray-100 font-sans font-bold uppercase text-[9px] border-b border-black text-center">
+                                        <th class="border border-black px-3 py-2">Golongan</th>
+                                        <th class="border border-black px-3 py-2">Batas Nilai Poin</th>
+                                        <th class="border border-black px-3 py-2">Spread (%)</th>
+                                        <th class="border border-black px-3 py-2 text-right">Upah Terkecil (Min)</th>
+                                        <th class="border border-black px-3 py-2 text-right">Upah Tengah (Mid)</th>
+                                        <th class="border border-black px-3 py-2 text-right">Upah Terbesar (Max)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pdfWageTableBody">
+                                    <!-- Dynamic calculation rows populate here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Signature / Pengesahan Halaman 2 -->
+                        <div class="mt-12 flex justify-between text-xs pt-6 border-t border-gray-150">
+                            <div class="w-64">
+                                <p>Diketahui oleh,</p>
+                                <p class="font-bold">Dinas Tenaga Kerja Provinsi</p>
+                                <div class="h-16"></div>
+                                <p class="underline font-bold">( _______________________ )</p>
+                                <p class="text-[10px] text-gray-500">Pejabat Pengawas Pengupahan</p>
+                            </div>
+                            <div class="text-right w-64">
+                                <p>Disahkan & Ditetapkan oleh,</p>
+                                <p class="font-bold" id="pdfHeaderCompanySign">PT. SUKSES BERSAMA INDONESIA</p>
+                                <div class="h-16"></div>
+                                <p class="underline font-bold" id="pdfSigneeCompany2">( _______________________ )</p>
+                                <p class="text-[10px] text-gray-500" id="pdfSigneeSub2">Direktur Utama</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Dialog / Confirmation Box -->
+    <div id="custom-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full p-6 m-4 animate-in fade-in zoom-in-95 duration-200">
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Konfirmasi Tindakan</h3>
+            <p id="custom-confirm-text" class="text-sm text-slate-600 mb-6">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+            <div class="flex justify-end gap-3">
+                <button id="custom-confirm-cancel" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">Batal</button>
+                <button id="custom-confirm-ok" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Toast Box (SSU & FES Shared Alerts) -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 text-slate-400 py-6 mt-12 text-center text-xs">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="font-semibold text-slate-300">FES & SSU Integrated - Professional HR Dashboard</p>
+            <p class="mt-1">Copyright © 2026. Dikembangkan secara khusus oleh <span class="text-indigo-400 font-bold">Iman N Bajuasijadji</span>.</p>
+        </div>
+    </footer>
+
+    <!-- Script Logic -->
+    <script>
+        // Global Data Matrix for FES based on Permenaker No 1/2017
+        const FES_DATA_SOURCE = [
+            {
+                id: "f1",
+                category: "Keahlian",
+                name: "Faktor 1: Pengetahuan (Knowledge Required)",
+                desc: "Tingkat pendidikan minimal yang secara objektif dibutuhkan oleh posisi jabatan untuk melakukan fungsi operasional standar.",
+                levels: {
+                    "Tingkat 1 (10 Poin)": { val: 10, narrative: "Memerlukan pendidikan dasar setara lulusan Sekolah Dasar (SD)." },
+                    "Tingkat 2 (30 Poin)": { val: 30, narrative: "Memerlukan pendidikan umum setara lulusan Sekolah Menengah Pertama (SMP)." },
+                    "Tingkat 3 (60 Poin)": { val: 60, narrative: "Memerlukan pengetahuan umum setara lulusan Sekolah Menengah Atas (SMA) atau Kejuruan (SMK)." },
+                    "Tingkat 4 (90 Poin)": { val: 90, narrative: "Membutuhkan keahlian teknis operasional setara lulusan Diploma (D1 s/d D3)." },
+                    "Tingkat 5 (120 Poin)": { val: 120, narrative: "Membutuhkan pengetahuan ilmiah profesional setara lulusan Sarjana (S1) dengan landasan teori metodologi kuat." }
+                }
+            },
+            {
+                id: "f2",
+                category: "Keahlian",
+                name: "Faktor 2: Pengalaman (Experience)",
+                desc: "Jangka waktu minimum praktik kerja nyata di lapangan untuk mengaplikasikan ilmu pengetahuan secara andal harian.",
+                levels: {
+                    "Tingkat 1 (0 Poin)": { val: 0, narrative: "Tidak membutuhkan pengalaman khusus, hanya memerlukan masa orientasi kerja kurang dari 1 tahun." },
+                    "Tingkat 2 (20 Poin)": { val: 20, narrative: "Memerlukan pengalaman penugasan dasar sejenis selama jangka waktu 1 tahun sampai dengan 2 tahun." },
+                    "Tingkat 3 (60 Poin)": { val: 60, narrative: "Memerlukan pengalaman kerja taktis fungsional selama jangka waktu 3 tahun sampai dengan 6 tahun." },
+                    "Tingkat 4 (130 Poin)": { val: 130, narrative: "Memerlukan kematangan fungsional dan pengalaman analitis mendalam selama jangka waktu 7 tahun sampai dengan 10 tahun." },
+                    "Tingkat 5 (180 Poin)": { val: 180, narrative: "Membutuhkan rekam jejak kepemimpinan manajerial atau kepakaran operasional tingkat lanjut selama lebih dari 10 tahun." }
+                }
+            },
+            {
+                id: "f3",
+                category: "Usaha",
+                name: "Faktor 3: Fisik (Physical Effort)",
+                desc: "Seberapa tinggi pekerja mengalami kelelahan fisik (banyak menggunakan tenaga fisik) ketika melakukan pekerjaannya.",
+                levels: {
+                    "Tingkat 1 (10 Poin)": { val: 10, narrative: "Beban fisik sangat rendah. Dominan aktivitas sedenter (duduk bekerja di meja komputer)." },
+                    "Tingkat 2 (10 Poin)": { val: 10, narrative: "Beban fisik ringan. Berdiri, berjalan kasual sesekali di lingkungan kantor administrasi." },
+                    "Tingkat 3 (20 Poin)": { val: 20, narrative: "Beban fisik sedang. Berdiri lama atau mengangkat material ringan-sedang secara berulang." },
+                    "Tingkat 4 (30 Poin)": { val: 30, narrative: "Beban fisik tinggi. Memerlukan aktivitas lapangan ekstensif atau pengoperasian konstan alat berat divisi." },
+                    "Tingkat 5 (40 Poin)": { val: 40, narrative: "Beban fisik sangat tinggi. Penugasan menguras tenaga fisik ekstrem yang berisiko memicu kelelahan tinggi harian." }
+                }
+            },
+            {
+                id: "f4",
+                category: "Usaha",
+                name: "Faktor 4: Mental (Mental Effort)",
+                desc: "Seberapa tinggi pekerja mengalami kelelahan mental atau keharusan fokus kognitif ketika melakukan pekerjaannya.",
+                levels: {
+                    "Tingkat 1 (10 Poin)": { val: 10, narrative: "Tuntutan mental sangat rendah. Siklus tugas sangat pendek, sejenis, dan berulang." },
+                    "Tingkat 2 (20 Poin)": { val: 20, narrative: "Tuntutan mental normal. Memerlukan sedikit konsentrasi pemantauan tugas rutin." },
+                    "Tingkat 3 (40 Poin)": { val: 40, narrative: "Tuntutan mental sedang. Menuntut konsentrasi visual berkelanjutan untuk analisis data akurat." },
+                    "Tingkat 4 (60 Poin)": { val: 60, narrative: "Tuntutan mental tinggi. Mengalami beban kerja kognitif berat di bawah tenggat waktu divisi ketat." },
+                    "Tingkat 5 (80 Poin)": { val: 80, narrative: "Tuntutan mental ekstrem. Menuntut pemecahan isu kritis serta konsentrasi mental taktis puncak berkelanjutan." }
+                }
+            },
+            {
+                id: "f5",
+                category: "Tanggung Jawab",
+                name: "Faktor 5: Tanggung Jawab atas Peraturan (Rules/Policy Responsibility)",
+                desc: "Kewenangan dalam membuat keputusan atau ketentuan fungsional sesuai dengan lingkup bidang tugasnya.",
+                levels: {
+                    "Tingkat 1 (20 Poin)": { val: 20, narrative: "Hanya menjalankan peraturan baku. Tidak memiliki wewenang memutus revisi kebijakan." },
+                    "Tingkat 2 (40 Poin)": { val: 40, narrative: "Kewenangan sangat terbatas pada lingkup kecil tim kerja sendiri di bawah pengawasan ketat." },
+                    "Tingkat 3 (120 Poin)": { val: 120, narrative: "Membuat keputusan operasional taktis departemen selevel Kepala Seksi / Supervisor." },
+                    "Tingkat 4 (160 Poin)": { val: 160, narrative: "Mengesahkan rumusan kebijakan operasional divisi besar selevel Kepala Bagian / Manager." },
+                    "Tingkat 5 (240 Poin)": { val: 240, narrative: "Otoritas tertinggi korporasi untuk merancang visi taktis, sistem organisasi fundamental, dan peraturan makro." }
+                }
+            },
+            {
+                id: "f6",
+                category: "Tanggung Jawab",
+                name: "Faktor 6: Tanggung Jawab atas Keuangan (Financial Responsibility)",
+                desc: "Kewenangan dan kendali pengawasan langsung terhadap alokasi, penggunaan, serta otorisasi anggaran keuangan.",
+                levels: {
+                    "Tingkat 1 (0 Poin)": { val: 0, narrative: "Tidak memiliki tanggung jawab atau wewenang atas alokasi dana keuangan apa pun." },
+                    "Tingkat 2 (40 Poin)": { val: 40, narrative: "Mengelola anggaran belanja operasional mikro harian dengan batas persetujuan nilai nominal kecil." },
+                    "Tingkat 3 (120 Poin)": { val: 120, narrative: "Mengontrol realisasi kepatuhan anggaran taktis departemen selevel Kepala Unit Kerja." },
+                    "Tingkat 4 (160 Poin)": { val: 160, narrative: "Menyetujui dan merancang alokasi portofolio keuangan unit bisnis besar selevel Division Head." },
+                    "Tingkat 5 (240 Poin)": { val: 240, narrative: "Otoritas finansial tertinggi korporasi dalam otorisasi modal, neraca keuangan besar, atau kas makro." }
+                }
+            },
+            {
+                id: "f7",
+                category: "Lingkungan Kerja",
+                name: "Faktor 7: Kondisi Kerja (Working Conditions)",
+                desc: "Tingkat kenyamanan fisik lingkungan kerja tempat pegawai menyelesaikan tanggung jawab jabatan.",
+                levels: {
+                    "Tingkat 1 (0 Poin)": { val: 0, narrative: "Kondisi kerja sangat nyaman. Bekerja di ruang kantor tertutup ber-AC yang bersih, tenang, dan higienis." },
+                    "Tingkat 2 (10 Poin)": { val: 10, narrative: "Kondisi kerja normal nyaman. Sesekali turun ke area gudang penyimpanan atau lingkungan pabrik standar." },
+                    "Tingkat 3 (20 Poin)": { val: 20, narrative: "Kondisi kerja sedang. Sering terpapar kebisingan mesin, getaran alat kerja, atau suhu udara luar ruangan." },
+                    "Tingkat 4 (30 Poin)": { val: 30, narrative: "Kondisi kurang nyaman. Bekerja harian di lantai produksi pabrik berdebu, asap gas non-toksik, atau suhu panas harian." },
+                    "Tingkat 5 (40 Poin)": { val: 40, narrative: "Kondisi kerja sangat tidak nyaman. Bekerja di lapangan terbuka terekspos cuaca ekstrem atau risiko kotor konstan." }
+                }
+            },
+            {
+                id: "f8",
+                category: "Lingkungan Kerja",
+                name: "Faktor 8: Bahaya (Hazards)",
+                desc: "Tingkat risiko kecelakaan kerja atau penularan penyakit yang kemungkinan dihadapi oleh pekerja.",
+                levels: {
+                    "Tingkat 1 (0 Poin)": { val: 0, narrative: "Risiko bahaya fisik hampir nihil. Penugasan administrasi dalam ruang kerja yang terkontrol aman." },
+                    "Tingkat 2 (10 Poin)": { val: 10, narrative: "Risiko bahaya sangat rendah. Luka gores, lecet, terkilir ringan yang dapat ditangani kotak P3K umum." },
+                    "Tingkat 3 (20 Poin)": { val: 20, narrative: "Risiko bahaya sedang. Risiko cidera fisik yang memerlukan bantuan medis profesional." },
+                    "Tingkat 4 (40 Poin)": { val: 40, narrative: "Risiko bahaya tinggi. Risiko patah tulang, paparan gas kimia korosif, atau kecacatan fisik." },
+                    "Tingkat 5 (60 Poin)": { val: 60, narrative: "Risiko bahaya ekstrim / fatal. Risiko fatalitas tinggi akibat sengatan listrik tegangan tinggi, area bertekanan ekstrem, atau konstruksi tinggi." }
+                }
+            }
+        ];
+
+        // Global State variables
+        let currentEvaluation = {
+            company: "",
+            evaluator: "Iman N Bajuasijadji",
+            jobName: "",
+            scores: {}
+        };
+        let database = [];
+        let evaluators = ["Iman N Bajuasijadji"];
+        let wageChartInstance = null;
+        let activeStructure = [];
+
+        // Dynamic State for Session Protection (In-Memory ONLY - triggers login on refresh)
+        let isAppAuthenticated = false;
+
+        // PASSWORD PROTECTION HANDLER
+        function checkAppPassword() {
+            const input = document.getElementById('app-password-input');
+            const errorMsg = document.getElementById('password-error-message');
+            const password = input.value.trim();
+            
+            // Generate password dynamic based on current year (reward-YYYY)
+            const currentYear = new Date().getFullYear();
+            const correctPassword = `reward-${currentYear}`;
+            
+            if (password === correctPassword) {
+                isAppAuthenticated = true;
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+                showToast("Akses dasbor berhasil dibuka.");
+            } else {
+                errorMsg.classList.remove('hidden');
+                input.classList.add('border-rose-500', 'focus:ring-rose-500');
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // App Initializer
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            // Run Password Authentication Verification first
+            // Always lock the screen initially so that refresh or navigation triggers password requirement
+            const overlay = document.getElementById('login-overlay');
+            overlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+            
+            // Add Enter key event listener to the password input field
+            const passwordInput = document.getElementById('app-password-input');
+            if (passwordInput) {
+                passwordInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        checkAppPassword();
+                    }
+                });
+            }
+
+            // Load saved database from localStorage
+            const savedData = localStorage.getItem('fes_pro_database');
+            if (savedData) {
+                database = JSON.parse(savedData);
+            }
+
+            // Load saved evaluators list from localStorage
+            const savedEvaluators = localStorage.getItem('fes_pro_evaluators');
+            if (savedEvaluators) {
+                try {
+                    evaluators = JSON.parse(savedEvaluators);
+                } catch (e) {
+                    evaluators = ["Iman N Bajuasijadji"];
+                }
+            }
+
+            // Load last company name
+            const lastCompany = localStorage.getItem('fes_pro_last_company');
+            if (lastCompany) {
+                document.getElementById('companyName').value = lastCompany;
+                currentEvaluation.company = lastCompany;
+            }
+
+            // Setup listeners for SSU
+            document.getElementById('jumlahGolongan').addEventListener('change', () => {
+                generateSpreadInputs();
+                calculateAndRender();
+            });
+            document.getElementById('poinTerkecil').addEventListener('input', calculateAndRender);
+            document.getElementById('poinTerbesar').addEventListener('input', calculateAndRender);
+            document.getElementById('upahMin').addEventListener('input', calculateAndRender);
+            document.getElementById('upahMax').addEventListener('input', calculateAndRender);
+            document.getElementById('methodSelector').addEventListener('change', updateMethodLabels);
+
+            // Sync company profile input
+            document.getElementById('companyName').addEventListener('input', function(e) {
+                currentEvaluation.company = e.target.value;
+                localStorage.setItem('fes_pro_last_company', e.target.value);
+                updateLivePreview();
+            });
+
+            // Initialize all tabs & SSU structures
+            renderEvaluatorInputs();
+            renderMatrixAccordion();
+            renderCalculatorForm();
+            renderTable();
+            updateLivePreview();
+            
+            generateSpreadInputs();
+            updateMethodLabels();
+            renderScenarioList();
+
+            // Set default date
+            const dateObj = new Date();
+            const formatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('report-date').innerText = dateObj.toLocaleDateString('id-ID', formatOptions);
+        });
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('block');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById(tabId).classList.add('block');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'bg-indigo-50');
+                btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+            
+            document.getElementById('btn-' + tabId).classList.add('text-indigo-600', 'bg-indigo-50');
+            document.getElementById('btn-' + tabId).classList.remove('text-slate-600', 'hover:bg-slate-100');
+
+            // Force recalculation when moving into SSU tab
+            if (tabId === 'tab-ssu') {
+                calculateAndRender();
+            }
+            lucide.createIcons();
+        }
+
+        // Custom Toast Helper (Stackable and clean)
+        function showToast(message, isError = false) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+            const toast = document.createElement('div');
+            const bgClass = isError ? 'bg-red-600' : 'bg-emerald-600';
+            const iconName = isError ? 'x-circle' : 'check-circle';
+            
+            toast.className = `text-white px-4 py-3 rounded-lg shadow-lg text-xs font-bold transition duration-300 flex items-center gap-2 transform translate-y-5 opacity-0 ${bgClass}`;
+            toast.innerHTML = `
+                <i data-lucide="${iconName}" class="w-4 h-4"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-5', 'opacity-0');
+            }, 10);
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-5', 'opacity-0');
+                setTimeout(() => { toast.remove(); }, 300);
+            }, 3500);
+        }
+
+        // Custom Confirmation Dialog helper
+        function showCustomConfirm(text, onConfirm) {
+            const modal = document.getElementById('custom-confirm-modal');
+            const confirmText = document.getElementById('custom-confirm-text');
+            const btnOk = document.getElementById('custom-confirm-ok');
+            const btnCancel = document.getElementById('custom-confirm-cancel');
+            
+            confirmText.innerText = text;
+            modal.classList.remove('hidden');
+            
+            const handleConfirm = () => {
+                modal.classList.add('hidden');
+                cleanupListeners();
+                onConfirm();
+            };
+            const handleCancel = () => {
+                modal.classList.add('hidden');
+                cleanupListeners();
+            };
+            const cleanupListeners = () => {
+                btnOk.removeEventListener('click', handleConfirm);
+                btnCancel.removeEventListener('click', handleCancel);
+            };
+            
+            btnOk.addEventListener('click', handleConfirm);
+            btnCancel.addEventListener('click', handleCancel);
+        }
+
+        // --- SECTION: FES MODULE ---
+        function renderEvaluatorInputs() {
+            const container = document.getElementById('evaluator-inputs-container');
+            container.innerHTML = '';
+            
+            evaluators.forEach((name, idx) => {
+                container.innerHTML += `
+                    <div class="flex items-center gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                        <span class="text-xs font-bold text-slate-400 w-6">${idx + 1}.</span>
+                        <input type="text" value="${name}" oninput="updateEvaluatorName(${idx}, this.value)" placeholder="Ketik nama pemeriksa..." class="w-full border border-slate-300 rounded-lg p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
+                        ${evaluators.length > 1 ? `
+                            <button type="button" onclick="removeEvaluatorInput(${idx})" class="p-2 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition" title="Hapus">
+                                <i data-lucide="trash" class="w-4 h-4"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+            
+            const addBtn = document.getElementById('btn-add-evaluator');
+            if (evaluators.length >= 5) {
+                addBtn.classList.add('hidden');
+            } else {
+                addBtn.classList.remove('hidden');
+            }
+            
+            currentEvaluation.evaluator = evaluators.filter(name => name.trim() !== '').join(", ");
+            localStorage.setItem('fes_pro_evaluators', JSON.stringify(evaluators));
+        }
+
+        // Add evaluator to the profile
+        function addEvaluatorInput() {
+            if (evaluators.length < 5) {
+                evaluators.push('');
+                renderEvaluatorInputs();
+            } else {
+                showToast("Maksimal 5 nama evaluator.", true);
+            }
+        }
+
+        function removeEvaluatorInput(idx) {
+            if (evaluators.length > 1) {
+                evaluators.splice(idx, 1);
+                renderEvaluatorInputs();
+                updateLivePreview();
+                showToast("Evaluator berhasil dihapus.");
+            }
+        }
+
+        function updateEvaluatorName(idx, value) {
+            evaluators[idx] = value;
+            currentEvaluation.evaluator = evaluators.filter(name => name.trim() !== '').join(", ");
+            localStorage.setItem('fes_pro_evaluators', JSON.stringify(evaluators));
+            updateLivePreview();
+        }
+
+        function renderMatrixAccordion() {
+            const accordionContainer = document.getElementById('matrix-factors-accordion');
+            accordionContainer.innerHTML = '';
+
+            FES_DATA_SOURCE.forEach((factor, index) => {
+                let levelsHtml = '';
+                for (const [lvlName, lvlObj] of Object.entries(factor.levels)) {
+                    levelsHtml += `
+                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg hover:border-indigo-300 transition-all">
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+                                <span class="font-bold text-slate-800 text-sm">${lvlName}</span>
+                                <span class="bg-indigo-100 text-indigo-700 font-extrabold text-xs px-2.5 py-1 rounded-full">${lvlObj.val} Poin</span>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">${lvlObj.narrative}</p>
+                        </div>
+                    `;
+                }
+
+                accordionContainer.innerHTML += `
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50 shadow-sm">
+                        <button onclick="toggleAccordion('acc-${factor.id}')" class="w-full flex justify-between items-center p-4 bg-white hover:bg-slate-50 transition-all text-left focus:outline-none">
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2 flex-wrap">
+                                    <span class="bg-slate-100 text-slate-600 text-[10px] px-2 py-1 rounded border font-bold">F${index+1}</span>
+                                    <span class="text-xs bg-indigo-50 text-indigo-800 border border-indigo-200 rounded px-1.5 font-bold">${factor.category}</span>
+                                    ${factor.name}
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">${factor.desc.substring(0, 100)}...</p>
+                            </div>
+                            <i data-lucide="chevron-down" id="icon-acc-${factor.id}" class="w-5 h-5 text-slate-400 transform transition-transform"></i>
+                        </button>
+                        <div id="acc-${factor.id}" class="hidden p-5 bg-white border-t border-slate-150 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="md:col-span-2 lg:col-span-3 pb-3 border-b border-dashed border-slate-200">
+                                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Definisi Faktor</span>
+                                <p class="text-sm text-slate-600 leading-relaxed">${factor.desc}</p>
+                            </div>
+                            ${levelsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function toggleAccordion(accId) {
+            const content = document.getElementById(accId);
+            const icon = document.getElementById('icon-' + accId);
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // Render input forms dynamically
+        function renderCalculatorForm() {
+            const calcContainer = document.getElementById('calc-factors');
+            calcContainer.innerHTML = '';
+
+            FES_DATA_SOURCE.forEach((factor, index) => {
+                let optionsHtml = `<option value="-1" data-narrative="Silakan pilih opsi level pada faktor untuk melihat deskripsi naratif di sini.">-- Pilih Level Parameter --</option>`;
+                let subfactorCardsHtml = '';
+                
+                for (const [lvlName, lvlObj] of Object.entries(factor.levels)) {
+                    optionsHtml += `<option value="${lvlObj.val}" data-narrative="${lvlObj.narrative}">${lvlName}</option>`;
+                    
+                    subfactorCardsHtml += `
+                        <div onclick="selectLevelCard('${factor.id}', ${lvlObj.val}, '${lvlObj.narrative.replace(/'/g, "\\'")}')" 
+                             id="card-${factor.id}-${lvlObj.val}" 
+                             data-value="${lvlObj.val}"
+                             class="subfactor-card card-${factor.id} border border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-indigo-300 p-3 rounded-lg cursor-pointer transition text-left">
+                            <div class="flex justify-between items-center mb-1.5">
+                                <span class="text-xs font-bold text-slate-800">${lvlName}</span>
+                                <span class="text-xs font-extrabold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">${lvlObj.val} Poin</span>
+                            </div>
+                            <p class="text-[11px] text-slate-600 leading-relaxed">${lvlObj.narrative}</p>
+                        </div>
+                    `;
+                }
+
+                calcContainer.innerHTML += `
+                    <div class="bg-slate-50 p-5 border border-slate-200 rounded-xl shadow-sm space-y-3">
+                        <label class="block text-sm font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+                            <span class="bg-indigo-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded">F${index+1}</span>
+                            <span class="text-xs bg-indigo-100 text-indigo-800 border border-indigo-200 rounded px-1.5 font-bold">${factor.category}</span>
+                            ${factor.name}
+                        </label>
+                        <p class="text-xs text-slate-500 italic border-b border-slate-200 pb-2">${factor.desc}</p>
+                        
+                        <div>
+                            <select id="calc-${factor.id}" onchange="onFactorSelectChange('${factor.id}')" class="w-full border border-slate-300 bg-white rounded-lg p-2.5 text-xs font-semibold focus:ring-2 focus:ring-indigo-500 transition shadow-sm">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+
+                        <div class="space-y-2 mt-3">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Panduan Detail Subfaktor:</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
+                                ${subfactorCardsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function selectLevelCard(factorId, value, narrative) {
+            const selectElement = document.getElementById(`calc-${factorId}`);
+            selectElement.value = value;
+            currentEvaluation.scores[factorId] = value;
+            document.getElementById('live-narrative-explanation').innerText = narrative;
+            updateLivePreview();
+        }
+
+        function onFactorSelectChange(factorId) {
+            const selectElement = document.getElementById(`calc-${factorId}`);
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const val = parseInt(selectedOption.value);
+            const narrative = selectedOption.getAttribute('data-narrative');
+
+            if (val === -1) {
+                delete currentEvaluation.scores[factorId];
+            } else {
+                currentEvaluation.scores[factorId] = val;
+            }
+
+            document.getElementById('live-narrative-explanation').innerText = narrative;
+            updateLivePreview();
+        }
+
+        function updateLivePreview() {
+            let total = 0;
+            let answeredCount = 0;
+
+            FES_DATA_SOURCE.forEach(factor => {
+                const val = currentEvaluation.scores[factor.id];
+                if (val !== undefined) {
+                    total += val;
+                    answeredCount++;
+                }
+
+                const cards = document.querySelectorAll(`.card-${factor.id}`);
+                cards.forEach(card => {
+                    const cardVal = parseInt(card.getAttribute('data-value'));
+                    if (cardVal === val && val !== undefined) {
+                        card.classList.add('border-indigo-500', 'bg-indigo-50/50', 'ring-2', 'ring-indigo-400/20');
+                        card.classList.remove('border-slate-200', 'bg-slate-50');
+                    } else {
+                        card.classList.remove('border-indigo-500', 'bg-indigo-50/50', 'ring-2', 'ring-indigo-400/20');
+                        card.classList.add('border-slate-200', 'bg-slate-50');
+                    }
+                });
+            });
+
+            document.getElementById('live-total-points').innerText = total;
+            document.getElementById('progress-percent').innerText = `${answeredCount}/${FES_DATA_SOURCE.length} FAKTOR`;
+            
+            const percentWidth = Math.round((answeredCount / FES_DATA_SOURCE.length) * 100);
+            document.getElementById('progress-bar').style.width = `${percentWidth}%`;
+
+            const badge = document.getElementById('live-badge');
+            if (answeredCount === 0) {
+                badge.innerText = "Belum Terisi";
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-200 text-slate-700 border border-slate-300 mb-6";
+            } else if (total < 250) {
+                badge.innerText = "Grade Rendah (Fungsional / OB / Driver)";
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-300 mb-6";
+            } else if (total < 600) {
+                badge.innerText = "Grade Menengah (Penyelia / Staf Ahli)";
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-300 mb-6";
+            } else {
+                badge.innerText = "Grade Tinggi (Manajerial / Kepala Bidang)";
+                badge.className = "inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-300 mb-6";
+            }
+
+            const companyInputVal = document.getElementById('companyName').value.trim();
+            const jobInputVal = document.getElementById('jobName').value.trim();
+
+            document.getElementById('preview-job-name').innerText = jobInputVal || "Belum ditentukan";
+            document.getElementById('preview-company-name').innerText = companyInputVal || "PT. Sukses Bersama Indonesia";
+            document.getElementById('report-company-header').innerText = companyInputVal ? companyInputVal.toUpperCase() : "PT. SUKSES BERSAMA INDONESIA";
+
+            const cleanEvaluators = evaluators.filter(name => name.trim() !== '').join(", ") || "Iman N Bajuasijadji";
+            document.getElementById('report-evaluators').innerText = cleanEvaluators;
+            document.getElementById('mockup-verifier-signature').innerText = "Diverifikasi oleh: " + cleanEvaluators;
+        }
+
+        function clearCalculatorForm() {
+            document.getElementById('jobName').value = '';
+            currentEvaluation.jobName = '';
+            currentEvaluation.scores = {};
+            
+            FES_DATA_SOURCE.forEach(f => {
+                document.getElementById(`calc-${f.id}`).value = -1;
+            });
+            
+            document.getElementById('live-narrative-explanation').innerText = "Silakan pilih opsi level pada faktor untuk melihat deskripsi naratif di sini.";
+            updateLivePreview();
+            showToast("Kalkulator di-reset.");
+        }
+
+        function saveCurrentJobEvaluation() {
+            const compName = document.getElementById('companyName').value.trim();
+            const jobName = document.getElementById('jobName').value.trim();
+
+            if (!compName) {
+                showToast("Harap isi Nama Perusahaan terlebih dahulu di Tab 'Profil & Setup'.", true);
+                switchTab('tab-profile');
+                return;
+            }
+            if (!jobName) {
+                showToast("Harap isi Nama Jabatan sebelum menyimpan.", true);
+                document.getElementById('jobName').focus();
+                return;
+            }
+
+            let complete = true;
+            FES_DATA_SOURCE.forEach(f => {
+                if (currentEvaluation.scores[f.id] === undefined) complete = false;
+            });
+
+            if (!complete) {
+                showCustomConfirm("Beberapa faktor FES belum diisi. Tetap simpan hasil evaluasi saat ini?", () => {
+                    executeSaveEvaluation(compName, jobName);
+                });
+            } else {
+                executeSaveEvaluation(compName, jobName);
+            }
+        }
+
+        function executeSaveEvaluation(compName, jobName) {
+            const total = FES_DATA_SOURCE.reduce((acc, f) => acc + (currentEvaluation.scores[f.id] || 0), 0);
+
+            const newRecord = {
+                id: Date.now().toString(),
+                company: compName,
+                evaluator: evaluators.filter(name => name.trim() !== '').join(", ") || "Iman N Bajuasijadji",
+                jobName: jobName,
+                scores: { ...currentEvaluation.scores },
+                total: total
+            };
+
+            database.push(newRecord);
+            localStorage.setItem('fes_pro_database', JSON.stringify(database));
+
+            document.getElementById('jobName').value = '';
+            currentEvaluation.jobName = '';
+            currentEvaluation.scores = {};
+            
+            FES_DATA_SOURCE.forEach(f => {
+                document.getElementById(`calc-${f.id}`).value = -1;
+            });
+
+            updateLivePreview();
+            renderTable();
+
+            showToast("Hasil evaluasi disimpan!");
+            switchTab('tab-reports');
+        }
+
+        function renderTable() {
+            const dbBody = document.getElementById('databaseBody');
+            const mockupBody = document.getElementById('mockupTableBody');
+            dbBody.innerHTML = '';
+            mockupBody.innerHTML = '';
+
+            if (database.length === 0) {
+                dbBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-slate-400 italic">Belum ada data evaluasi jabatan yang tersimpan.</td>
+                    </tr>
+                `;
+                mockupBody.innerHTML = `
+                    <tr>
+                        <td colspan="10" class="p-4 text-center text-slate-400 italic">Belum ada data untuk ditampilkan.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            database.forEach((item, index) => {
+                let scoresDetail = [];
+                FES_DATA_SOURCE.forEach(f => {
+                    const score = item.scores[f.id] !== undefined ? item.scores[f.id] : 0;
+                    scoresDetail.push(`<span class="inline-block bg-slate-100 border border-slate-200 rounded px-1 text-[10px] font-bold text-slate-600 m-0.5">F${f.id.replace('f','')}:${score}</span>`);
+                });
+
+                dbBody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 font-semibold text-slate-500">${index + 1}</td>
+                        <td class="p-4 font-bold text-slate-800">${item.company}</td>
+                        <td class="p-4 font-semibold text-indigo-600">${item.jobName}</td>
+                        <td class="p-4 leading-normal max-w-xs md:max-w-md">${scoresDetail.join(' ')}</td>
+                        <td class="p-4 text-center font-black text-slate-900">${item.total}</td>
+                        <td class="p-4 text-center">
+                            <button onclick="confirmDeleteRecord('${item.id}')" class="p-1.5 text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-md transition" title="Hapus">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+
+                mockupBody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-200 text-slate-800 text-center">
+                        <td class="p-2 border border-slate-300 font-bold text-left">${item.jobName}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f1'] !== undefined ? item.scores['f1'] : 0}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f2'] !== undefined ? item.scores['f2'] : 0}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f3'] !== undefined ? item.scores['f3'] : 0}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f4'] !== undefined ? item.scores['f4'] : 0}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f5'] !== undefined ? item.scores['f5'] : 0}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f6'] !== undefined ? item.scores['f6'] : 0}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f7'] !== undefined ? item.scores['f7'] : 0}</td>
+                        <td class="p-2 border border-slate-300">${item.scores['f8'] !== undefined ? item.scores['f8'] : 0}</td>
+                        <td class="p-2 border border-slate-300 font-extrabold bg-slate-100">${item.total}</td>
+                    </tr>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function confirmDeleteRecord(recordId) {
+            showCustomConfirm("Apakah Anda yakin ingin menghapus hasil evaluasi jabatan ini?", () => {
+                database = database.filter(item => item.id !== recordId);
+                localStorage.setItem('fes_pro_database', JSON.stringify(database));
+                renderTable();
+                showToast("Evaluasi jabatan berhasil dihapus.");
+            });
+        }
+
+        function confirmClearAll() {
+            showCustomConfirm("Tindakan ini akan menghapus semua riwayat evaluasi secara permanen. Lanjutkan?", () => {
+                database = [];
+                localStorage.removeItem('fes_pro_database');
+                renderTable();
+                showToast("Database evaluasi telah dikosongkan.");
+            });
+        }
+
+        function downloadPDF() {
+            if (database.length === 0) {
+                showToast("Tidak ada data evaluasi jabatan untuk diekspor ke PDF.", true);
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+            const compName = document.getElementById('companyName').value.trim() || "PT. SUKSES BERSAMA INDONESIA";
+            const teamNames = evaluators.filter(n => n.trim() !== '').join(", ") || "Iman N Bajuasijadji";
+
+            doc.setFont("Helvetica", "bold");
+            doc.setFontSize(16);
+            doc.text(`LAPORAN HASIL EVALUASI JABATAN (METODE POIN FAKTOR)`, 14, 15);
+            doc.setFontSize(11);
+            doc.setFont("Helvetica", "normal");
+            doc.text(`Perusahaan/Organisasi: ${compName}`, 14, 21);
+            doc.text(`Sistem Evaluasi Berdasarkan Standardisasi Permenaker RI No. 1/2017`, 14, 26);
+            
+            const tableHeaders = [
+                ["No", "Nama Jabatan", "Pengetahuan (F1)", "Pengalaman (F2)", "Fisik (F3)", "Mental (F4)", "Peraturan (F5)", "Keuangan (F6)", "Kondisi Kerja (F7)", "Bahaya (F8)", "Total Poin"]
+            ];
+
+            const tableRows = database.map((item, index) => [
+                index + 1,
+                item.jobName,
+                item.scores['f1'] !== undefined ? item.scores['f1'] : 0,
+                item.scores['f2'] !== undefined ? item.scores['f2'] : 0,
+                item.scores['f3'] !== undefined ? item.scores['f3'] : 0,
+                item.scores['f4'] !== undefined ? item.scores['f4'] : 0,
+                item.scores['f5'] !== undefined ? item.scores['f5'] : 0,
+                item.scores['f6'] !== undefined ? item.scores['f6'] : 0,
+                item.scores['f7'] !== undefined ? item.scores['f7'] : 0,
+                item.scores['f8'] !== undefined ? item.scores['f8'] : 0,
+                item.total
+            ]);
+
+            doc.autoTable({
+                head: tableHeaders,
+                body: tableRows,
+                startY: 32,
+                theme: 'striped',
+                headStyles: { fillColor: [30, 27, 75], halign: 'center' },
+                columnStyles: {
+                    0: { width: '5%', halign: 'center' },
+                    1: { width: '25%', fontStyle: 'bold' },
+                    2: { halign: 'center', width: '8%' },
+                    3: { halign: 'center', width: '8%' },
+                    4: { halign: 'center', width: '8%' },
+                    5: { halign: 'center', width: '8%' },
+                    6: { halign: 'center', width: '8%' },
+                    7: { halign: 'center', width: '8%' },
+                    8: { halign: 'center', width: '8%' },
+                    9: { halign: 'center', width: '8%' },
+                    10: { fontStyle: 'bold', halign: 'center', fillColor: [241, 245, 249], width: '11%' }
+                }
+            });
+
+            const finalY = doc.previousAutoTable.finalY + 15;
+            doc.setFontSize(10);
+            doc.text("Disetujui oleh,", 200, finalY);
+            doc.text("Tim Evaluator Utama:", 200, finalY + 5);
+            doc.setFont("Helvetica", "bold");
+            
+            const splitNames = doc.splitTextToSize(teamNames, 70);
+            doc.text(splitNames, 200, finalY + 12);
+
+            doc.save(`Laporan_FES_${compName.replace(/\s+/g, '_')}.pdf`);
+            showToast("Laporan PDF berhasil diunduh!");
+        }
+
+        function downloadExcel() {
+            if (database.length === 0) {
+                showToast("Tidak ada data evaluasi jabatan untuk diekspor ke Excel.", true);
+                return;
+            }
+
+            const compName = document.getElementById('companyName').value.trim() || "PT. SUKSES BERSAMA INDONESIA";
+            const teamNames = evaluators.filter(n => n.trim() !== '').join(", ") || "Iman N Bajuasijadji";
+
+            const headers = [
+                ["LAPORAN EVALUASI JABATAN (METODE POIN FAKTOR)"],
+                [`Perusahaan / Organisasi: ${compName}`],
+                [`Standardisasi Berdasarkan Permenaker No. 1 Tahun 2017`],
+                [`Tim Evaluator Sidang: ${teamNames}`],
+                [`Sistem Utama Dikembangkan oleh: Iman N Bajuasijadji`],
+                [],
+                ["No.", "Perusahaan", "Nama Jabatan", "F1: Pengetahuan", "F2: Pengalaman", "F3: Fisik", "F4: Mental", "F5: Peraturan", "F6: Keuangan", "F7: Kondisi Kerja", "F8: Bahaya", "Total Poin"]
+            ];
+
+            const rows = database.map((item, index) => [
+                index + 1,
+                item.company,
+                item.jobName,
+                item.scores['f1'] !== undefined ? item.scores['f1'] : 0,
+                item.scores['f2'] !== undefined ? item.scores['f2'] : 0,
+                item.scores['f3'] !== undefined ? item.scores['f3'] : 0,
+                item.scores['f4'] !== undefined ? item.scores['f4'] : 0,
+                item.scores['f5'] !== undefined ? item.scores['f5'] : 0,
+                item.scores['f6'] !== undefined ? item.scores['f6'] : 0,
+                item.scores['f7'] !== undefined ? item.scores['f7'] : 0,
+                item.scores['f8'] !== undefined ? item.scores['f8'] : 0,
+                item.total
+            ]);
+
+            const fullSheetData = [...headers, ...rows];
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(fullSheetData);
+
+            XLSX.utils.book_append_sheet(wb, ws, "Database FES");
+            XLSX.writeFile(wb, `Database_FES_${compName.replace(/\s+/g, '_')}.xlsx`);
+            showToast("Berkas Excel berhasil diunduh.");
+        }
+
+        // --- SECTION: SSU MODULE ---
+        // Sync evaluated points from FES database directly into the SSU input fields
+        function syncPointsFromFES() {
+            if (database.length === 0) {
+                showToast("Belum ada data di database FES. Silakan evaluasi jabatan terlebih dahulu.", true);
+                return;
+            }
+            
+            // Extract all totals
+            const totals = database.map(item => item.total);
+            const minPoints = Math.min(...totals);
+            const maxPoints = Math.max(...totals);
+
+            document.getElementById('poinTerkecil').value = minPoints;
+            document.getElementById('poinTerbesar').value = maxPoints;
+
+            showToast(`Poin tersinkron! Terendah: ${minPoints}, Tertinggi: ${maxPoints}`);
+            calculateAndRender();
+        }
+
+        function updateMethodLabels() {
+            const selectedMethod = document.getElementById('methodSelector').value;
+            const labelUpahMin = document.getElementById('labelUpahMin');
+            const descUpahMin = document.getElementById('descUpahMin');
+            const labelUpahMax = document.getElementById('labelUpahMax');
+            const descUpahMax = document.getElementById('descUpahMax');
+            const methodHelpText = document.getElementById('methodHelpText');
+
+            if (selectedMethod === 'pilihan1') {
+                labelUpahMin.innerText = "Upah Tengah Terendah (Gol. I)";
+                descUpahMin.innerHTML = "Biasanya berbasis pada ketentuan <strong>Upah Minimum</strong> daerah yang berlaku.";
+                labelUpahMax.innerText = "Upah Tengah Tertinggi (Gol. Akhir)";
+                descUpahMax.innerHTML = "Upah kebijakan tertinggi perusahaan untuk posisi teratas.";
+                methodHelpText.innerText = "Menggunakan metode dua titik standar dengan nilai upah tengah terendah dan tertinggi ditentukan langsung melalui interpolasi linear.";
+            } else {
+                labelUpahMin.innerText = "Upah Minimum Berlaku (Min Gol. I)";
+                descUpahMin.innerHTML = "Diisi secara manual sebagai batas upah terkecil (Min) absolut Golongan I.";
+                labelUpahMax.innerText = "Upah Tertinggi Riil Perusahaan (Mid Gol. Akhir)";
+                descUpahMax.innerHTML = "Ditempatkan langsung sebagai nilai <strong>Upah Tengah (Mid)</strong> pada golongan tertinggi perusahaan.";
+                methodHelpText.innerText = "Clean Wages / Upah Utuh: Golongan I dihitung menggunakan Rumus No. 2, Golongan tertinggi menggunakan Upah Aktual Riil sebagai Midpoint.";
+            }
+            calculateAndRender();
+        }
+
+        function generateSpreadInputs() {
+            const count = parseInt(document.getElementById('jumlahGolongan').value) || 2;
+            const container = document.getElementById('spreadContainer');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= count; i++) {
+                let defaultSpread = 40;
+                if (count > 3) {
+                    const ratio = i / count;
+                    if (ratio > 0.8) {
+                        defaultSpread = 100;
+                    } else if (ratio > 0.4) {
+                        defaultSpread = 70;
+                    }
+                }
+
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between space-x-3 text-xs bg-slate-50 p-2.5 rounded-lg border border-slate-200";
+                div.innerHTML = `
+                    <span class="font-semibold text-slate-700">Golongan ${i}</span>
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="spread_gol_${i}" value="${defaultSpread}" min="10" max="150" class="w-16 px-2 py-1 text-right border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 text-xs">
+                        <span class="text-slate-500 font-semibold">%</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function resetSpreadDefaults() {
+            const count = parseInt(document.getElementById('jumlahGolongan').value) || 2;
+            for (let i = 1; i <= count; i++) {
+                let defaultSpread = 40;
+                if (count > 3) {
+                    const ratio = i / count;
+                    if (ratio > 0.8) {
+                        defaultSpread = 100;
+                    } else if (ratio > 0.4) {
+                        defaultSpread = 70;
+                    }
+                }
+                const inputElement = document.getElementById(`spread_gol_${i}`);
+                if (inputElement) {
+                    inputElement.value = defaultSpread;
+                }
+            }
+            calculateAndRender();
+        }
+
+        // Format raw numbers to beautiful Currency IDR Format
+        function formatRupiah(num) {
+            return "Rp " + Math.round(num).toLocaleString('id-ID');
+        }
+
+        function calculateAndRender() {
+            const companyName = document.getElementById('companyName').value || "PT. Sukses Bersama Indonesia";
+            const numGrades = parseInt(document.getElementById('jumlahGolongan').value) || 2;
+            const ptKecil = parseInt(document.getElementById('poinTerkecil').value) || 150;
+            const ptBesar = parseInt(document.getElementById('poinTerbesar').value) || 870;
+            const upahMin = parseFloat(document.getElementById('upahMin').value) || 2050000;
+            const upahMax = parseFloat(document.getElementById('upahMax').value) || 20000000;
+            const selectedMethod = document.getElementById('methodSelector').value;
+
+            // Poin range interval
+            const rangeVal = (ptBesar - ptKecil) / numGrades;
+            const computedData = [];
+            let prevMaxPoint = 0;
+
+            if (selectedMethod === 'pilihan1') {
+                // PILIHAN 1: Dua Titik Standar (Upah Pokok & Tunjangan)
+                const b = (upahMax - upahMin) / (numGrades - 1 || 1);
+                const a = upahMin - b * 1;
+
+                for (let i = 1; i <= numGrades; i++) {
+                    let startPoint, endPoint;
+                    if (i === 1) {
+                        startPoint = ptKecil;
+                        endPoint = Math.round(ptKecil + rangeVal);
+                    } else {
+                        startPoint = prevMaxPoint + 1;
+                        endPoint = Math.round(prevMaxPoint + rangeVal);
+                    }
+                    prevMaxPoint = endPoint;
+
+                    const midPointVal = a + b * i;
+
+                    const spreadInput = document.getElementById(`spread_gol_${i}`);
+                    const spreadVal = spreadInput ? parseFloat(spreadInput.value) : 40;
+                    const spreadDecimal = spreadVal / 100;
+
+                    const minWageVal = (2 * midPointVal) / (spreadDecimal + 2);
+                    const maxWageVal = (2 * midPointVal * (spreadDecimal + 1)) / (spreadDecimal + 2);
+
+                    computedData.push({
+                        grade: i,
+                        pointRange: `${startPoint} - ${endPoint}`,
+                        spread: spreadVal,
+                        min: minWageVal,
+                        mid: midPointVal,
+                        max: maxWageVal
+                    });
+                }
+            } else {
+                // PILIHAN 2: Clean Wages / Upah Utuh
+                const min1 = upahMin;
+                const spreadInputGol1 = document.getElementById('spread_gol_1');
+                const spreadValGol1 = spreadInputGol1 ? parseFloat(spreadInputGol1.value) : 40;
+                const spreadDecimalGol1 = spreadValGol1 / 100;
+
+                const mid1 = (min1 * (spreadDecimalGol1 + 2)) / 2;
+                const max1 = min1 * (spreadDecimalGol1 + 1);
+
+                const midN = upahMax;
+                const b = (midN - mid1) / (numGrades - 1 || 1);
+                const a = mid1 - b * 1;
+
+                for (let i = 1; i <= numGrades; i++) {
+                    let startPoint, endPoint;
+                    if (i === 1) {
+                        startPoint = ptKecil;
+                        endPoint = Math.round(ptKecil + rangeVal);
+                    } else {
+                        startPoint = prevMaxPoint + 1;
+                        endPoint = Math.round(prevMaxPoint + rangeVal);
+                    }
+                    prevMaxPoint = endPoint;
+
+                    const spreadInput = document.getElementById(`spread_gol_${i}`);
+                    const spreadVal = spreadInput ? parseFloat(spreadInput.value) : 40;
+                    const spreadDecimal = spreadVal / 100;
+
+                    let minWageVal, midPointVal, maxWageVal;
+
+                    if (i === 1) {
+                        minWageVal = min1;
+                        midPointVal = mid1;
+                        maxWageVal = max1;
+                    } else {
+                        midPointVal = a + b * i;
+                        minWageVal = (2 * midPointVal) / (spreadDecimal + 2);
+                        maxWageVal = (2 * midPointVal * (spreadDecimal + 1)) / (spreadDecimal + 2);
+                    }
+
+                    computedData.push({
+                        grade: i,
+                        pointRange: `${startPoint} - ${endPoint}`,
+                        spread: spreadVal,
+                        min: minWageVal,
+                        mid: midPointVal,
+                        max: maxWageVal
+                    });
+                }
+            }
+
+            activeStructure = computedData;
+
+            // Render to SSU Main table
+            const tableBody = document.getElementById('wageTableBody');
+            tableBody.innerHTML = '';
+            
+            computedData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-bold text-slate-800">Golongan ${row.grade}</td>
+                    <td class="px-4 py-3 text-slate-600 font-medium">${row.pointRange}</td>
+                    <td class="px-4 py-3 text-center text-slate-700 font-semibold">${row.spread}%</td>
+                    <td class="px-4 py-3 text-right text-slate-600 font-mono">${formatRupiah(row.min)}</td>
+                    <td class="px-4 py-3 text-right text-slate-900 font-bold font-mono">${formatRupiah(row.mid)}</td>
+                    <td class="px-4 py-3 text-right text-slate-600 font-mono">${formatRupiah(row.max)}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            renderWageChart(computedData);
+        }
+
+        // Visual Chart rendering via Chart.js
+        function renderWageChart(data) {
+            const ctx = document.getElementById('wageChart').getContext('2d');
+            const labels = data.map(item => `Gol. ${item.grade}`);
+            const barData = data.map(item => [item.min, item.max]);
+            const midData = data.map(item => item.mid);
+
+            if (wageChartInstance) {
+                wageChartInstance.destroy();
+            }
+
+            wageChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Rentang Skala Upah (Min - Max)',
+                            data: barData,
+                            backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                            borderColor: 'rgba(99, 102, 241, 0.8)',
+                            borderWidth: { top: 2, bottom: 2, left: 1, right: 1 },
+                            borderRadius: 6,
+                            borderSkipped: false,
+                            order: 2,
+                        },
+                        {
+                            label: 'Garis Kebijakan Upah Tengah (Mid)',
+                            data: midData,
+                            type: 'line',
+                            borderColor: '#e11d48',
+                            backgroundColor: '#e11d48',
+                            borderWidth: 2,
+                            pointStyle: 'circle',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            fill: false,
+                            tension: 0,
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' },
+                                color: '#334155'
+                            }
+                        },
+                        tooltip: {
+                            fontFamily: 'Plus Jakarta Sans',
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) label += ': ';
+                                    if (context.dataset.type === 'line') {
+                                        label += formatRupiah(context.raw);
+                                    } else {
+                                        const values = context.raw;
+                                        label += `${formatRupiah(values[0])} - ${formatRupiah(values[1])}`;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            grid: { color: '#f1f5f9' },
+                            ticks: {
+                                callback: function(value) { return "Rp " + value.toLocaleString('id-ID'); },
+                                font: { family: 'Plus Jakarta Sans', size: 10 },
+                                color: '#64748b'
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' }, color: '#334155' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Scenario storage logic
+        function saveCurrentScenario() {
+            const name = document.getElementById('scenarioName').value.trim();
+            if (!name) {
+                showToast("Masukkan nama skenario terlebih dahulu.", true);
+                return;
+            }
+
+            const state = {
+                companyName: document.getElementById('companyName').value,
+                jumlahGolongan: document.getElementById('jumlahGolongan').value,
+                poinTerkecil: document.getElementById('poinTerkecil').value,
+                poinTerbesar: document.getElementById('poinTerbesar').value,
+                upahMin: document.getElementById('upahMin').value,
+                upahMax: document.getElementById('upahMax').value,
+                selectedMethod: document.getElementById('methodSelector').value,
+                spreads: []
+            };
+
+            const count = parseInt(state.jumlahGolongan);
+            for (let i = 1; i <= count; i++) {
+                const spreadVal = document.getElementById(`spread_gol_${i}`)?.value || 40;
+                state.spreads.push(spreadVal);
+            }
+
+            let savedScenarios = JSON.parse(localStorage.getItem('saved_ssu_scenarios')) || {};
+            savedScenarios[name] = state;
+            localStorage.setItem('saved_ssu_scenarios', JSON.stringify(savedScenarios));
+
+            document.getElementById('scenarioName').value = '';
+            showToast("Skenario SSU berhasil disimpan!");
+            renderScenarioList();
+        }
+
+        function renderScenarioList() {
+            const listContainer = document.getElementById('savedScenariosList');
+            const savedScenarios = JSON.parse(localStorage.getItem('saved_ssu_scenarios')) || {};
+
+            if (Object.keys(savedScenarios).length === 0) {
+                listContainer.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada skenario tersimpan.</p>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            Object.keys(savedScenarios).forEach(key => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center bg-slate-50 border border-slate-200 p-2 rounded-lg text-xs hover:bg-slate-100 transition-all";
+                item.innerHTML = `
+                    <span class="font-bold text-slate-700 truncate max-w-[150px] cursor-pointer" onclick="loadScenario('${key}')" title="Klik untuk memuat skenario">${key}</span>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="loadScenario('${key}')" class="text-indigo-600 hover:text-indigo-800 font-semibold px-1">Pilih</button>
+                        <span class="text-slate-300">|</span>
+                        <button onclick="deleteScenario('${key}')" class="text-rose-500 hover:text-rose-700 px-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+            lucide.createIcons();
+        }
+
+        function loadScenario(name) {
+            const savedScenarios = JSON.parse(localStorage.getItem('saved_ssu_scenarios')) || {};
+            const state = savedScenarios[name];
+            if (!state) return;
+
+            document.getElementById('companyName').value = state.companyName;
+            document.getElementById('jumlahGolongan').value = state.jumlahGolongan;
+            document.getElementById('poinTerkecil').value = state.poinTerkecil;
+            document.getElementById('poinTerbesar').value = state.poinTerbesar;
+            document.getElementById('upahMin').value = state.upahMin;
+            document.getElementById('upahMax').value = state.upahMax;
+            document.getElementById('methodSelector').value = state.selectedMethod || 'pilihan1';
+
+            generateSpreadInputs();
+            updateMethodLabels();
+            
+            setTimeout(() => {
+                state.spreads.forEach((spreadVal, idx) => {
+                    const input = document.getElementById(`spread_gol_${idx + 1}`);
+                    if (input) input.value = spreadVal;
+                });
+                calculateAndRender();
+                showToast(`Skenario "${name}" berhasil dimuat.`);
+            }, 50);
+        }
+
+        function deleteScenario(name) {
+            let savedScenarios = JSON.parse(localStorage.getItem('saved_ssu_scenarios')) || {};
+            delete savedScenarios[name];
+            localStorage.setItem('saved_ssu_scenarios', JSON.stringify(savedScenarios));
+            showToast(`Skenario "${name}" dihapus.`, true);
+            renderScenarioList();
+        }
+
+        function clearAllInputs() {
+            document.getElementById('poinTerkecil').value = '150';
+            document.getElementById('poinTerbesar').value = '870';
+            document.getElementById('upahMin').value = '2050000';
+            document.getElementById('upahMax').value = '20000000';
+            document.getElementById('methodSelector').value = 'pilihan1';
+            document.getElementById('jumlahGolongan').value = '8';
+            generateSpreadInputs();
+            updateMethodLabels();
+            showToast("Formulir dibersihkan.", true);
+        }
+
+        // Export active configuration structure to a structured CSV document
+        function exportToCSV() {
+            const companyName = document.getElementById('companyName').value || "PT. Sukses Bersama Indonesia";
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += `Skenario Struktur dan Skala Upah - ${companyName}\r\n`;
+            csvContent += "Golongan Jabatan,Poin Evaluasi Jabatan,Rentang/Spread (%),Upah Terkecil (Min),Upah Tengah (Mid),Upah Terbesar (Max)\r\n";
+
+            activeStructure.forEach(row => {
+                csvContent += `Golongan ${row.grade},"${row.pointRange}",${row.spread}%,${Math.round(row.min)},${Math.round(row.mid)},${Math.round(row.max)}\r\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Struktur_Skala_Upah_${companyName.replace(/\s+/g, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast("Data berhasil diekspor.");
+        }
+
+        function showPdfPreviewModal() {
+            const companyName = document.getElementById('companyName').value || "PT. Sukses Bersama Indonesia";
+            const selectedMethod = document.getElementById('methodSelector').value;
+            
+            document.getElementById('pdfHeaderCompany').innerText = companyName;
+            document.getElementById('pdfHeaderCompany2').innerText = companyName;
+            document.getElementById('pdfHeaderCompanySign').innerText = companyName;
+            document.getElementById('pdfSigneeCompany').innerText = "( _______________________ )";
+            document.getElementById('pdfSigneeCompany2').innerText = "( _______________________ )";
+            document.getElementById('pdfSigneeSub').innerText = "Direktur Utama " + companyName;
+            document.getElementById('pdfSigneeSub2').innerText = "Direktur Utama " + companyName;
+
+            document.getElementById('pdfMethodText').innerText = selectedMethod === 'pilihan1' 
+                ? "Metode: Pilihan 1 - Upah Pokok & Tunjangan (Dua Titik Standar)" 
+                : "Metode: Pilihan 2 - Clean Wages / Upah Utuh (Formula Lampiran)";
+
+            const pdfBody = document.getElementById('pdfWageTableBody');
+            pdfBody.innerHTML = '';
+
+            activeStructure.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-black text-center";
+                tr.innerHTML = `
+                    <td class="border border-black px-3 py-1.5 font-bold">Golongan ${row.grade}</td>
+                    <td class="border border-black px-3 py-1.5 font-mono">${row.pointRange}</td>
+                    <td class="border border-black px-3 py-1.5 text-center">${row.spread}%</td>
+                    <td class="border border-black px-3 py-1.5 text-right font-mono">${formatRupiah(row.min)}</td>
+                    <td class="border border-black px-3 py-1.5 text-right font-bold font-mono">${formatRupiah(row.mid)}</td>
+                    <td class="border border-black px-3 py-1.5 text-right font-mono">${formatRupiah(row.max)}</td>
+                `;
+                pdfBody.appendChild(tr);
+            });
+
+            document.getElementById('pdfModal').classList.remove('hidden');
+        }
+
+        function closePdfPreviewModal() {
+            document.getElementById('pdfModal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
